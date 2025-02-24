@@ -1,0 +1,10 @@
+{% extends 'booking/base.html' %}
+
+
+{% block content %}
+    <h2>Payment Successful! 🎉</h2>
+    <p>Your booking for <strong>{{ ticket.movie.title }}</strong> has been confirmed.</p>
+    <p>Seat Number: <strong>{{ ticket.seat_number }}</strong></p>
+    <p>Transaction ID: <strong>TXN12345678</strong></p>
+    <a href="{% url 'movie_list' %}" class="btn btn-primary">Back to Movies</a>
+{% endblock %}

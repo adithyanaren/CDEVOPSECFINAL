@@ -1,0 +1,17 @@
+{% extends "booking/base.html" %}
+
+{% block content %}
+    <h2>My Booked Tickets</h2>
+
+    {% for ticket in tickets %}
+        <div>
+            <p><strong>Movie:</strong> {{ ticket.movie.title }}</p>
+            <p><strong>Show Time:</strong> {{ ticket.show_time.time|time:"h:i A" }}</p>
+            <p><strong>Tickets:</strong> {{ ticket.quantity }}</p>
+            <p><strong>Seat Number:</strong> {{ ticket.seat_number }}</p>
+            <p><strong>Booked On:</strong> {{ ticket.booking_date }}</p>
+        </div>
+    {% empty %}
+        <p>You have no booked tickets.</p>
+    {% endfor %}
+{% endblock %}
