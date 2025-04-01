@@ -131,3 +131,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'  # Redirects users to your actual login page
 LOGIN_REDIRECT_URL = '/movie_list/'  # Redirect users to movie list after login
 LOGOUT_REDIRECT_URL = 'movie_list'  # Redirect to login page after logout
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Use Gmail's SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "adithya.ak6@gmail.com" # Replace with your email
+EMAIL_HOST_PASSWORD = 'tzsv gwdn tiwq rhci'  # Replace with your email password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

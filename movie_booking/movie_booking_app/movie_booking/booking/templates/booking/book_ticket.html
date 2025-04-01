@@ -1,49 +1,113 @@
 {% extends "booking/base.html" %}
 
 {% block content %}
-<div class="container">
-    <div class="card shadow-lg p-4 mt-5 mx-auto" style="max-width: 500px; background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
-        <h2 class="text-center mb-4">Book Ticket for <br><strong>{{ movie.title }}</strong></h2>
+    <h2 class="text-center">🎟️ Book Ticket for <strong>{{ movie.title }}</strong></h2>
 
-        <form method="POST" class="text-center">
-            {% csrf_token %}
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
 
-            <!-- Show Time Dropdown -->
-            <div class="mb-3">
-                <label for="show_time" class="form-label"><strong>Select Show Time:</strong></label>
-                <select name="show_time" id="show_time" class="form-select" required>
-                    {% for show in show_times %}
-                        <option value="{{ show.id }}">{{ show.show_time }}</option>
-                    {% empty %}
-                        <option disabled>No show times available</option>
-                    {% endfor %}
-                </select>
+        <!-- Show Time Selection -->
+        <div class="mb-3">
+            <label for="show_time" class="form-label">🎬 Select Show Time:</label>
+            <select name="show_time" id="show_time" class="form-select" required>
+                {% for show in show_times %}
+                    <option value="{{ show.id }}">{{ show.show_time }}</option>
+                {% empty %}
+                    <option disabled>No show times available</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Seat Selection Grid -->
+        <div class="mb-3">
+            <label class="form-label">🪑 Select Seats:</label>
+            <div class="seat-container">
+                {% for row in "ABCDEF" %}
+                    <div class="seat-row">
+                        <span class="row-label">{{ row }}</span>
+                        {% for num in "12345678910"|make_list %}
+                            <button type="button" class="seat btn btn-outline-secondary" data-seat="{{ row }}{{ num }}">
+                                {{ row }}{{ num }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
             </div>
+        </div>
 
-            <!-- Seat Number Input -->
-            <div class="mb-3">
-                <label for="seat_number" class="form-label"><strong>Enter Seat Number:</strong></label>
-                <input type="text" name="seat_number" id="seat_number" class="form-control" placeholder="e.g., A12" required>
-            </div>
+        <!-- Hidden Input to Store Selected Seats -->
+        <input type="text" name="seat_number" id="seat_number" class="form-control mt-2" placeholder="Selected Seats" required readonly>
 
-            <!-- Ticket Quantity -->
-            <div class="mb-3">
-                <label for="quantity" class="form-label"><strong>Number of Tickets:</strong></label>
-                <input type="number" name="quantity" id="quantity" class="form-control" min="1" max="10" required>
-            </div>
+        <!-- Ticket Quantity (Auto-updated) -->
+        <div class="mb-3">
+            <label for="quantity" class="form-label">🎫 Number of Tickets:</label>
+            <input type="number" name="quantity" id="quantity" class="form-control" min="1" max="10" required readonly>
+        </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary w-100">Proceed to Payment</button>
-        </form>
-    </div>
-</div>
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100 mt-2">Proceed to Payment</button>
+    </form>
 
-<!-- Background Styling -->
-<style>
-    body {
-        background: url('/static/images/cinema_bg.jpg') no-repeat center center fixed;
-        background-size: cover;
-        font-family: 'Arial', sans-serif;
-    }
-</style>
+    <!-- CSS Styling -->
+    <style>
+        .seat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .seat-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .row-label {
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            margin-right: 10px;
+        }
+        .seat {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .seat.selected {
+            background-color: #28a745 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+    </style>
+
+    <!-- JavaScript for Multi-Seat Selection & Auto-Update -->
+    <script>
+        let selectedSeats = new Set();
+
+        function updateSeatSelection() {
+            document.getElementById('seat_number').value = Array.from(selectedSeats).join(", ");
+            document.getElementById('quantity').value = selectedSeats.size;
+        }
+
+        document.querySelectorAll('.seat').forEach(seat => {
+            seat.addEventListener('click', function () {
+                const seatValue = this.dataset.seat;
+
+                if (selectedSeats.has(seatValue)) {
+                    selectedSeats.delete(seatValue);
+                    this.classList.remove('selected');
+                } else {
+                    if (selectedSeats.size < 10) { // Limit selection to 10 seats
+                        selectedSeats.add(seatValue);
+                        this.classList.add('selected');
+                    } else {
+                        alert("You can only select up to 10 seats!");
+                    }
+                }
+
+                updateSeatSelection();
+            });
+        });
+    </script>
 {% endblock %}

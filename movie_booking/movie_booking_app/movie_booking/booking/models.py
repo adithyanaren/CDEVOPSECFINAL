@@ -36,12 +36,21 @@ class Ticket(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.movie.title} - Seat: {self.seat_number} - {'Paid' if self.is_paid else 'Pending'}"
 
+import uuid  # Import at the top of your models.py
+
 class Payment(models.Model):
     ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('completed', 'Completed')], default='pending')
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, unique=True)  # Make it unique
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Generate a unique transaction ID if not set
+        if not self.transaction_id:
+            self.transaction_id = str(uuid.uuid4())  # Generate a unique ID
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Payment for Ticket {self.ticket.id} - {self.status}"
+

@@ -12,17 +12,33 @@ def movie_list(request):
     return render(request, 'booking/movie_list.html', {'movies': movies})
 
 
+from .utils import send_ticket_email
+
 @login_required
 def book_ticket(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
-    show_times = ShowTime.objects.filter(movie=movie)  # Fetch available show times
+    show_times = ShowTime.objects.filter(movie=movie)
 
     if request.method == "POST":
         show_time_id = request.POST.get("show_time")
-        show_time = get_object_or_404(ShowTime, id=show_time_id)  # Get selected show time
-        quantity = int(request.POST.get("quantity", 1))  # Ensure it's an integer
+        show_time = get_object_or_404(ShowTime, id=show_time_id)
+        quantity = int(request.POST.get("quantity", 1))
         seat_number = request.POST.get("seat_number")
 
+        # Check if the seat is already booked for the selected movie and show time
+        existing_ticket = Ticket.objects.filter(
+            movie=movie,
+            show_time=show_time,
+            seat_number=seat_number
+        ).exists()
+
+        if existing_ticket:
+            return HttpResponse(
+                "This seat is already booked. Please select a different seat.",
+                status=400
+            )
+
+        # Create the ticket
         ticket = Ticket.objects.create(
             user=request.user,
             movie=movie,
@@ -32,9 +48,19 @@ def book_ticket(request, movie_id):
             is_paid=False
         )
 
-        return redirect("payment", ticket_id=ticket.id)  # Redirect to payment page
+        # Send ticket confirmation email
+        send_ticket_email(
+            user_email=request.user.email,
+            movie_title=movie.title,
+            show_time=show_time.show_time.strftime('%I:%M %p'),
+            seat_number=seat_number,
+            quantity=quantity
+        )
+
+        return redirect("payment", ticket_id=ticket.id)
 
     return render(request, "booking/book_ticket.html", {"movie": movie, "show_times": show_times})
+
 
 
 @login_required
@@ -104,6 +130,13 @@ def payment_page(request, ticket_id):
     return render(request, "booking/payment.html", {"ticket": ticket, "payment": payment})
 
 
+@login_required
 def payment_success(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-    return render(request, "booking/success.html", {"ticket": ticket})
+    ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+    payment = get_object_or_404(Payment, ticket=ticket)
+
+    return render(request, 'booking/success.html', {
+        'ticket': ticket,
+        'payment': payment,  # Pass the payment object to the template
+    })
+
