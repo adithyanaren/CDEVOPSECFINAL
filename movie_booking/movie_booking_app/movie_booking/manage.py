@@ -2,6 +2,9 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'movie_booking_app', 'movie_booking'))
 
 
 def main():
